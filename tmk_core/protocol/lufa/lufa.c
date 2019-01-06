@@ -243,8 +243,8 @@ static void Console_Task(void)
 
     uint8_t ep = Endpoint_GetCurrentEndpoint();
 
-    dprintln("Checking console out");
-    println("Checking console out");
+//    dprintln("Checking console out");
+//    println("Checking console out");
     // TODO: impl receivechar()/recvchar()
     Endpoint_SelectEndpoint(CONSOLE_OUT_EPNUM);
 
@@ -396,9 +396,11 @@ void EVENT_USB_Device_StartOfFrame(void)
     if (++count % 50) return;
     count = 0;
 
-    if (!console_flush) return;
+    if (!console_flush) {
+        println("Not console flushing");
+        return;
+    }
     Console_Task();
-    console_flush = false;
 }
 
 #endif
@@ -863,14 +865,14 @@ int8_t sendchar(uint8_t c)
     if (!Endpoint_IsReadWriteAllowed()) {
         while (!(Endpoint_IsINReady()));
         Endpoint_ClearIN();
-    } else {
-        CONSOLE_FLUSH_SET(true);
     }
 
     Endpoint_SelectEndpoint(ep);
+    CONSOLE_FLUSH_SET(true);
     return 0;
 ERROR_EXIT:
     Endpoint_SelectEndpoint(ep);
+    CONSOLE_FLUSH_SET(true);
     return -1;
 }
 #else
