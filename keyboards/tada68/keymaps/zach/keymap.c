@@ -1,6 +1,5 @@
 #include QMK_KEYBOARD_H
 
-#include "raw_hid.h"
 #include "debug.h"
 
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
@@ -10,7 +9,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 	[3] = LAYOUT_ansi(TG(2), KC_F1, KC_F2, KC_F3, KC_F4, KC_F5, KC_F6, KC_F7, KC_F8, KC_F9, KC_F10, KC_F11, KC_F12, KC_DEL, KC_PSCR, TG(1), KC_BTN1, KC_MS_U, KC_BTN2, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_INS, KC_TRNS, KC_MS_L, KC_MS_D, KC_MS_R, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_PAUS, KC_TRNS, KC_TRNS, KC_TRNS, BL_DEC, BL_TOGG, BL_INC, KC_TRNS, KC_MUTE, KC_VOLD, KC_VOLU, KC_TRNS, KC_TRNS, KC_PGUP, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_PWR, KC_MPRV, KC_MPLY, KC_MNXT, KC_HOME, KC_PGDN, KC_END)
 };
 
-void raw_hid_receive( uint8_t *data, uint8_t length ) {
-    dprintln("Received raw HID data");
-    println("Received raw HID data");
+void process_console_data_user(uint8_t * data, uint8_t length) {
+    println("In user data for zach");
+    dprintln("In user data for zach");
 }

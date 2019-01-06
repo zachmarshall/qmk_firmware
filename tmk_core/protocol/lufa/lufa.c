@@ -267,7 +267,7 @@ static void Console_Task(void)
             dprintln("Read console out");
             println("Read console out");
             /* Process Console Report Data */
-            //ProcessConsoleHIDReport(ConsoleData);
+            process_console_data_quantum(ConsoleData, CONSOLE_EPSIZE);
         }
 
         /* Finalize the stream transfer to send the last packet */
