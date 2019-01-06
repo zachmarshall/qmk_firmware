@@ -385,6 +385,45 @@ static bool console_flush = false;
   } \
 } while (0)
 
+typedef void (*scheduledFunc)(void);
+typedef struct {
+    scheduledFunc func;
+    uint16_t timeout;
+    uint8_t times;
+} ScheduledConsoleItem;
+typedef struct {
+    ScheduledConsoleItem item;
+    uint16_t lastTime;
+} RunningConsoleItem;
+#define SCHED_ITEM_COUNT 128
+static RunningConsoleItem scheduledItems[SCHED_ITEM_COUNT];
+void scheduleFunction(ScheduledConsoleItem item) {
+    RunningConsoleItem runningItem;
+    runningItem.item = item;
+    for (uint8_t i = 0; i < SCHED_ITEM_COUNT; i++) {
+        if (NULL == scheduledItems[i].item.func) {
+            scheduledItems[i] = runningItem;
+        }
+    }
+}
+void runScheduledItem(RunningConsoleItem runningItem) {
+    runningItem.lastTime = timer_read();
+    runningItem.item.func();
+    runningItem.item.times--;
+}
+void runScheduledItems(void) {
+    for (uint8_t i = 0; i < SCHED_ITEM_COUNT; i++) {
+        if (NULL != scheduledItems[i].item.func) {
+            if ((0 == scheduledItems[i].lastTime) || (timer_elapsed(scheduledItems[i].lastTime) > scheduledItems[i].item.timeout)) {
+                runScheduledItem(scheduledItems[i]);
+            }
+            if (0 == scheduledItems[i].item.times) {
+                scheduledItems[i].item.func = NULL;
+            }
+        }
+    }
+}
+
 /** \brief Event USB Device Start Of Frame
  *
  * FIXME: Needs doc
