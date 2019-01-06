@@ -12,5 +12,13 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 void process_console_data_user(uint8_t * data, uint8_t length) {
     println("In user data for zach");
     dprintln("In user data for zach");
-    backlight_toggle();
+    if (1 < length && 0x03 == data[0]) {
+        uint16_t times = (uint16_t)data[1] * (uint16_t)2;
+        printf("Will flash %d times\n", times);
+        dprintf("Will flash %d times\n", times);
+        for (uint16_t i = 0; i < times; i++) {
+            backlight_toggle();
+            wait_ms(500);
+        }
+    }
 }

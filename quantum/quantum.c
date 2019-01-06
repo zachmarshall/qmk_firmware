@@ -1533,14 +1533,13 @@ void process_console_data_quantum(uint8_t * data, uint8_t length) {
   dprint("\t");
   uint8_t * dp = data;
   while (*dp) {
-      printf("0x%X", *dp);
-      dprintf("0x%X", *dp);
+      printf("0x%X(%u) ", *dp, *dp);
+      dprintf("0x%X(%u) ", *dp, *dp);
       dp++;
   }
-  // while (*data) {
-  //   sendchar(*data);
-  //   data++;
-  // }
+  print("\n");
+  dprint("\n");
+
   switch (data[0]) {
     case 0x01:
       print("Saying hello\n");
