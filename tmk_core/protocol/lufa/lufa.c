@@ -55,6 +55,7 @@
 #include <util/atomic.h>
 #include "outputselect.h"
 #include "rgblight_reconfig.h"
+#include "scheduled.h"
 
 #ifdef NKRO_ENABLE
   #include "keycode_config.h"
@@ -385,12 +386,7 @@ static bool console_flush = false;
   } \
 } while (0)
 
-typedef void (*scheduledFunc)(void);
-typedef struct {
-    scheduledFunc func;
-    uint16_t timeout;
-    uint8_t times;
-} ScheduledConsoleItem;
+
 typedef struct {
     ScheduledConsoleItem item;
     uint16_t lastTime;
@@ -398,13 +394,16 @@ typedef struct {
 #define SCHED_ITEM_COUNT 128
 static RunningConsoleItem scheduledItems[SCHED_ITEM_COUNT];
 void scheduleFunction(ScheduledConsoleItem item) {
+    dprintf("Scheduling item to run %d times every %d ms\n", item.times, item.timeout);
     RunningConsoleItem runningItem;
     runningItem.item = item;
     for (uint8_t i = 0; i < SCHED_ITEM_COUNT; i++) {
         if (NULL == scheduledItems[i].item.func) {
             scheduledItems[i] = runningItem;
+            return;
         }
     }
+    dprintln("Warning, no space left to schedule item.");
 }
 void runScheduledItem(RunningConsoleItem runningItem) {
     runningItem.lastTime = timer_read();
@@ -412,12 +411,21 @@ void runScheduledItem(RunningConsoleItem runningItem) {
     runningItem.item.times--;
 }
 void runScheduledItems(void) {
+    dprintln("Running scheduled items.");
     for (uint8_t i = 0; i < SCHED_ITEM_COUNT; i++) {
         if (NULL != scheduledItems[i].item.func) {
-            if ((0 == scheduledItems[i].lastTime) || (timer_elapsed(scheduledItems[i].lastTime) > scheduledItems[i].item.timeout)) {
+            if ((0 == scheduledItems[i].lastTime)) {
+                dprintf("Found scheduled item that is due to for the first time. It will run again after %d and will run %d times.\n", scheduledItems[i].item.timeout, scheduledItems[i].item.times);
                 runScheduledItem(scheduledItems[i]);
+            } else {
+                uint16_t elapsed = timer_elapsed(scheduledItems[i].lastTime);
+                if (elapsed > scheduledItems[i].item.timeout) {
+                    dprintf("Found scheduled item that is due to run again (last ran at %d and %dms have elapsed). It will run again after %d and will run %d times.\n", scheduledItems[i].lastTime, elapsed, scheduledItems[i].item.timeout, scheduledItems[i].item.times);
+                    runScheduledItem(scheduledItems[i]);
+                }
             }
             if (0 == scheduledItems[i].item.times) {
+                dprintf("Scheduled item with timeout %d is not scheduled to run any more, clearing out function.\n", scheduledItems[i].item.timeout);
                 scheduledItems[i].item.func = NULL;
             }
         }
@@ -440,6 +448,7 @@ void EVENT_USB_Device_StartOfFrame(void)
         return;
     }
     Console_Task();
+    runScheduledItems();
 }
 
 #endif
