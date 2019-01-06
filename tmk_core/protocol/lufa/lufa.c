@@ -243,22 +243,29 @@ static void Console_Task(void)
 
     uint8_t ep = Endpoint_GetCurrentEndpoint();
 
-#if 0
+    dprintln("Checking console out");
+    println("Checking console out");
     // TODO: impl receivechar()/recvchar()
     Endpoint_SelectEndpoint(CONSOLE_OUT_EPNUM);
 
     /* Check to see if a packet has been sent from the host */
     if (Endpoint_IsOUTReceived())
     {
+        dprintln("Got console out");
+        println("Got console out");
         /* Check to see if the packet contains data */
         if (Endpoint_IsReadWriteAllowed())
         {
+            dprintln("Can read/write console out");
+            println("Can read/write console out");
             /* Create a temporary buffer to hold the read in report from the host */
             uint8_t ConsoleData[CONSOLE_EPSIZE];
 
             /* Read Console Report Data */
             Endpoint_Read_Stream_LE(&ConsoleData, sizeof(ConsoleData), NULL);
 
+            dprintln("Read console out");
+            println("Read console out");
             /* Process Console Report Data */
             //ProcessConsoleHIDReport(ConsoleData);
         }
@@ -266,7 +273,6 @@ static void Console_Task(void)
         /* Finalize the stream transfer to send the last packet */
         Endpoint_ClearOUT();
     }
-#endif
 
     /* IN packet */
     Endpoint_SelectEndpoint(CONSOLE_IN_EPNUM);
@@ -438,10 +444,8 @@ void EVENT_USB_Device_ConfigurationChanged(void)
     /* Setup Console HID Report Endpoints */
     ConfigSuccess &= ENDPOINT_CONFIG(CONSOLE_IN_EPNUM, EP_TYPE_INTERRUPT, ENDPOINT_DIR_IN,
                                      CONSOLE_EPSIZE, ENDPOINT_BANK_SINGLE);
-#if 0
     ConfigSuccess &= ENDPOINT_CONFIG(CONSOLE_OUT_EPNUM, EP_TYPE_INTERRUPT, ENDPOINT_DIR_OUT,
                                      CONSOLE_EPSIZE, ENDPOINT_BANK_SINGLE);
-#endif
 #endif
 
 #ifdef MIDI_ENABLE

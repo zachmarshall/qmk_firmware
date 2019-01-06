@@ -182,14 +182,10 @@ enum usb_endpoints {
 #endif
 #if defined(CONSOLE_ENABLE)
     CONSOLE_IN_EPNUM = NEXT_EPNUM,
-#ifdef PROTOCOL_CHIBIOS
 // ChibiOS has enough memory and descriptor to actually enable the endpoint
 // It could use the same endpoint numbers, as that's supported by ChibiOS
 // But the QMK code currently assumes that the endpoint numbers are different
     CONSOLE_OUT_EPNUM = NEXT_EPNUM,
-#else
-#define CONSOLE_OUT_EPNUM CONSOLE_IN_EPNUM
-#endif
 #endif
 #ifdef MIDI_ENABLE
     MIDI_STREAM_IN_EPNUM = NEXT_EPNUM,
