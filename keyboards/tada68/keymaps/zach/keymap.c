@@ -12,4 +12,5 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 void process_console_data_user(uint8_t * data, uint8_t length) {
     println("In user data for zach");
     dprintln("In user data for zach");
+    backlight_toggle();
 }
