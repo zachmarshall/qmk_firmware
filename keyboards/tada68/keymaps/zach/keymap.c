@@ -11,9 +11,9 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 };
 
 void process_console_data_user(uint8_t * data, uint8_t length) {
-    dprintln("In user data for zach");
+    dprintln("User data for zach");
     if (1 < length && 0x03 == data[0]) {
-        uint16_t times = (uint16_t)data[1] * (uint16_t)2;
+        uint8_t times = (uint16_t)data[1] * (uint16_t)2;
         dprintf("Will flash %d times\n", times);
         ScheduledConsoleItem item;
         item.func = &backlight_toggle;

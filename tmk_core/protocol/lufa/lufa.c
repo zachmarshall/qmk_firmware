@@ -386,46 +386,62 @@ static bool console_flush = false;
   } \
 } while (0)
 
-
+static bool initializedSched = false;
 typedef struct {
     ScheduledConsoleItem item;
     uint16_t lastTime;
 } RunningConsoleItem;
-#define SCHED_ITEM_COUNT 128
+#define SCHED_ITEM_COUNT 8
 static RunningConsoleItem scheduledItems[SCHED_ITEM_COUNT];
+void initializeSched(void) {
+    if (!initializedSched) {
+        for (uint8_t i = 0; i < SCHED_ITEM_COUNT; i++) {
+            scheduledItems[i].item.func = NULL;
+            scheduledItems[i].lastTime = 0;
+        }
+        initializedSched = true;
+        dprintln("Inited sched array");
+    }
+}
 void scheduleFunction(ScheduledConsoleItem item) {
-    dprintf("Scheduling item to run %d times every %d ms\n", item.times, item.timeout);
+    dprintf("Scheduling %d times every %dms\n", item.times, item.timeout);
+    initializeSched();
     RunningConsoleItem runningItem;
     runningItem.item = item;
+    runningItem.lastTime = 0;
     for (uint8_t i = 0; i < SCHED_ITEM_COUNT; i++) {
         if (NULL == scheduledItems[i].item.func) {
             scheduledItems[i] = runningItem;
             return;
         }
     }
-    dprintln("Warning, no space left to schedule item.");
+    dprintln("NO SPACE");
 }
-void runScheduledItem(RunningConsoleItem runningItem) {
-    runningItem.lastTime = timer_read();
-    runningItem.item.func();
-    runningItem.item.times--;
+void runScheduledItem(RunningConsoleItem * runningItem) {
+    runningItem->lastTime = timer_read();
+    runningItem->item.func();
+    runningItem->item.times--;
+    dprintf("In sched func times=%d\n", runningItem->item.times);
 }
 void runScheduledItems(void) {
     dprintln("Running scheduled items.");
+    initializeSched();
     for (uint8_t i = 0; i < SCHED_ITEM_COUNT; i++) {
         if (NULL != scheduledItems[i].item.func) {
+            dprintln("Found sched item");
             if ((0 == scheduledItems[i].lastTime)) {
-                dprintf("Found scheduled item that is due to for the first time. It will run again after %d and will run %d times.\n", scheduledItems[i].item.timeout, scheduledItems[i].item.times);
-                runScheduledItem(scheduledItems[i]);
+                dprintf("First time, again after %dms. Will run %d times.\n", scheduledItems[i].item.timeout, scheduledItems[i].item.times);
+                runScheduledItem(&scheduledItems[i]);
+                // dprintln("Ran scheduled item z");
             } else {
                 uint16_t elapsed = timer_elapsed(scheduledItems[i].lastTime);
                 if (elapsed > scheduledItems[i].item.timeout) {
-                    dprintf("Found scheduled item that is due to run again (last ran at %d and %dms have elapsed). It will run again after %d and will run %d times.\n", scheduledItems[i].lastTime, elapsed, scheduledItems[i].item.timeout, scheduledItems[i].item.times);
-                    runScheduledItem(scheduledItems[i]);
+                    dprintf("Run sched item (last at %d and %dms have elapsed). Run again in %dms and run %d times.\n", scheduledItems[i].lastTime, elapsed, scheduledItems[i].item.timeout, scheduledItems[i].item.times);
+                    runScheduledItem(&scheduledItems[i]);
                 }
             }
             if (0 == scheduledItems[i].item.times) {
-                dprintf("Scheduled item with timeout %d is not scheduled to run any more, clearing out function.\n", scheduledItems[i].item.timeout);
+                //dprintf("Item timeout %d will not run anymore.\n", scheduledItems[i].item.timeout);
                 scheduledItems[i].item.func = NULL;
             }
         }
