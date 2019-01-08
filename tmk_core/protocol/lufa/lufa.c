@@ -424,7 +424,6 @@ void runScheduledItem(RunningConsoleItem * runningItem) {
     dprintf("In sched func times=%d\n", runningItem->item.times);
 }
 void runScheduledItems(void) {
-    dprintln("Running scheduled items.");
     initializeSched();
     for (uint8_t i = 0; i < SCHED_ITEM_COUNT; i++) {
         if (NULL != scheduledItems[i].item.func) {
